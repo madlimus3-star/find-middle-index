@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Find Middle Index — Algorithm Animation</title>
+<style>
+:root{--bg:#0b1020;--panel:#151d33;--panel2:#1c2945;--text:#edf3ff;--muted:#9eacc8;--cyan:#54d6e8;--green:#5ee0a0;--orange:#ffbd69;--red:#ff7185}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#17264a 0,#0b1020 55%);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;padding:26px 16px 50px}
+main{max-width:1000px;margin:auto}h1{font-size:clamp(25px,4vw,38px);margin:0 0 8px}.sub{color:var(--muted);margin:0 0 22px}
+.panel{background:rgba(21,29,51,.94);border:1px solid #2b3958;border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 12px 30px #0003}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.controls input{flex:1;min-width:230px;background:#0c1428;color:var(--text);border:1px solid #3b4d70;border-radius:10px;padding:11px;font-size:16px}
+button{border:0;border-radius:10px;padding:10px 15px;font-weight:700;cursor:pointer;background:var(--cyan);color:#07121d}button.secondary{background:#2b3b5d;color:var(--text)}button:disabled{opacity:.4;cursor:not-allowed}
+.status{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}.stat{background:#0d162b;border:1px solid #2b3958;border-radius:12px;padding:10px 14px;min-width:115px}.stat small{display:block;color:var(--muted);font-size:12px}.stat strong{font-size:21px}
+.array{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;padding:22px 5px 12px}.cell{width:66px;text-align:center}.value{height:58px;border:2px solid #536789;border-radius:12px;background:#202d49;display:grid;place-items:center;font-size:22px;font-weight:800;transition:.25s}.idx{font-size:12px;color:var(--muted);margin-top:6px}.cell.current .value{border-color:var(--orange);background:#49351e;transform:translateY(-5px)}.cell.left .value{border-color:var(--green);background:#173e36}.cell.right .value{border-color:var(--cyan);background:#153c4b}.cell.middle .value{border-color:#d7a5ff;background:#422c59;box-shadow:0 0 18px #bd82ff55}
+.legend{display:flex;gap:15px;flex-wrap:wrap;color:var(--muted);font-size:13px;margin-top:8px}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+.pointers{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;color:var(--muted);font-size:14px;margin:8px 0}
+.explain{font-size:17px;line-height:1.65;min-height:58px}.code{font-family:ui-monospace,SFMono-Regular,monospace;background:#0a1224;padding:14px;border-radius:12px;overflow:auto;color:#cbd8f5;font-size:13px;line-height:1.8}.line{display:block;padding:0 8px;border-radius:5px}.line.active{background:#263b5c;color:#fff;border-left:3px solid var(--orange)}
+.result{font-weight:800;color:var(--green)}.bad{color:var(--red)}.progress{height:7px;background:#273653;border-radius:20px;overflow:hidden;margin-top:12px}.bar{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--green));transition:width .2s}
+@media(max-width:520px){body{padding:18px 10px}.panel{padding:14px}.cell{width:53px}.value{height:52px}}
+</style>
+</head>
+<body>
+<main>
+<h1>Find Middle Index</h1>
+<p class="sub">แอนิเมชันอธิบายการหา index ที่ผลรวมด้านซ้ายเท่ากับผลรวมด้านขวา</p>
+<section class="panel">
+ <div class="controls">
+  <input id="input" value="2, 3, -1, 8, 4" aria-label="Array values" placeholder="เช่น 2, 3, -1, 8, 4">
+  <button id="load">โหลด Array</button>
+  <button class="secondary" id="reset">เริ่มใหม่</button>
+ </div>
+ <div class="controls" style="margin-top:12px">
+  <button id="prev" class="secondary">ย้อนกลับ</button>
+  <button id="play">▶ เล่น</button>
+  <button id="next" class="secondary">ขั้นถัดไป</button>
+  <label style="color:var(--muted);font-size:14px">ความเร็ว
+   <select id="speed" style="background:#0c1428;color:white;border:1px solid #3b4d70;border-radius:8px;padding:8px"><option value="1400">ช้า</option><option value="800" selected>ปกติ</option><option value="350">เร็ว</option></select>
+  </label>
+ </div>
+ <div class="status">
+  <div class="stat"><small>ผลรวมทั้งหมด (sum)</small><strong id="sum">16</strong></div>
+  <div class="stat"><small>ผลรวมซ้าย (l)</small><strong id="left">0</strong></div>
+  <div class="stat"><small>ผลรวมขวา (r)</small><strong id="right">16</strong></div>
+  <div class="stat"><small>กำลังตรวจ index</small><strong id="index">—</strong></div>
+ </div>
+ <div class="array" id="array"></div>
+ <div class="legend">
+  <span><i class="dot" style="background:var(--orange)"></i>ตำแหน่งที่กำลังตรวจ</span>
+  <span><i class="dot" style="background:var(--green)"></i>ฝั่งซ้าย</span>
+  <span><i class="dot" style="background:var(--cyan)"></i>ฝั่งขวา</span>
+  <span><i class="dot" style="background:#d7a5ff"></i>พบ Middle Index</span>
+ </div>
+ <div class="progress"><div class="bar" id="bar"></div></div>
+</section>
+<section class="panel">
+ <h3 style="margin:0 0 8px">เกิดอะไรขึ้นในขั้นตอนนี้?</h3>
+ <div class="explain" id="explain" aria-live="polite">เริ่มจากคำนวณผลรวมของ Array ทั้งหมด</div>
+ <div class="pointers"><span id="compare">เงื่อนไข: l == r</span><span id="step">ขั้นตอน 0</span></div>
+ <div id="answer"></div>
+</section>
+<section class="panel">
+ <h3 style="margin:0 0 10px">โค้ดที่กำลังทำงาน</h3>
+ <div class="code">
+  <span class="line" data-line="1">int sum = 0;</span>
+  <span class="line" data-line="2">for (int num : nums) sum += num;</span>
+  <span class="line" data-line="3">int l = 0, r = sum;</span>
+  <span class="line" data-line="4">for (int i = 0; i &lt; nums.size(); i++) {</span>
+  <span class="line" data-line="5">&nbsp;&nbsp;r -= nums[i];</span>
+  <span class="line" data-line="6">&nbsp;&nbsp;if (l == r) return i;</span>
+  <span class="line" data-line="7">&nbsp;&nbsp;l += nums[i];</span>
+  <span class="line" data-line="8">}</span>
+  <span class="line" data-line="9">return -1;</span>
+ </div>
+</section>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let nums=[2,3,-1,8,4], states=[], pos=0, timer=null;
+function build(){
+ const sum=nums.reduce((a,b)=>a+b,0), s=[];
+ s.push({sum,l:0,r:sum,i:null,line:3,msg:`คำนวณผลรวมทั้งหมดได้ sum = ${sum} จากนั้นกำหนด l = 0 และ r = ${sum}`,kind:"init"});
+ let l=0,r=sum,found=false;
+ for(let i=0;i<nums.length;i++){
+  r-=nums[i];
+  s.push({sum,l,r,i,line:5,msg:`กำลังตรวจ nums[${i}] = ${nums[i]}: นำค่านี้ออกจาก r ก่อน จึงได้ r = ${r}`,kind:"subtract"});
+  if(l===r){s.push({sum,l,r,i,line:6,msg:`l (${l}) เท่ากับ r (${r}) แล้ว! ดังนั้น index ${i} คือ Middle Index`,kind:"found"});found=true;break;}
+  s.push({sum,l,r,i,line:6,msg:`เปรียบเทียบ l = ${l} กับ r = ${r}: ยังไม่เท่ากัน จึงไปเพิ่ม nums[${i}] ให้ l`,kind:"compare"});
+  l+=nums[i];
+  s.push({sum,l,r,i,line:7,msg:`อัปเดต l = l + nums[${i}] ได้ l = ${l} เพื่อเตรียมตรวจตำแหน่งถัดไป`,kind:"add"});
+ }
+ if(!found)s.push({sum,l,r,i:null,line:9,msg:"ตรวจครบทุกตำแหน่งแล้ว แต่ไม่พบจุดที่ผลรวมซ้ายเท่ากับผลรวมขวา",kind:"none"});
+ return s;
+}
+function render(){
+ const s=states[pos]; if(!s)return;
+ $("sum").textContent=s.sum;$("left").textContent=s.l;$("right").textContent=s.r;$("index").textContent=s.i===null?"—":s.i;
+ $("array").innerHTML=nums.map((v,i)=>{
+  let cls="";
+  if(s.kind==="found"&&i===s.i)cls="middle";
+  else if(i===s.i)cls="current";
+  else if(s.i!==null&&i<s.i)cls="left";
+  else if(s.i!==null&&i>s.i)cls="right";
+  return `<div class="cell ${cls}"><div class="value">${v}</div><div class="idx">index ${i}</div></div>`;
+ }).join("");
+ $("explain").textContent=s.msg;
+ $("compare").textContent=s.kind==="found"?"✓ l == r":`เงื่อนไข: ${s.l} == ${s.r} ?`;
+ $("step").textContent=`ขั้นตอน ${pos+1} / ${states.length}`;
+ $("bar").style.width=((pos+1)/states.length*100)+"%";
+ document.querySelectorAll(".line").forEach(el=>el.classList.toggle("active",Number(el.dataset.line)===s.line));
+ $("answer").innerHTML=s.kind==="found"?`<div class="result">คำตอบ: ${s.i} (Middle Index)</div>`:s.kind==="none"?`<div class="bad">คำตอบ: -1 (ไม่พบ Middle Index)</div>`:"";
+ $("prev").disabled=pos===0;$("next").disabled=pos===states.length-1;
+ if(pos===states.length-1)stop();
+}
+function stop(){if(timer){clearInterval(timer);timer=null}$("play").textContent="▶ เล่น"}
+function go(n){stop();pos=Math.max(0,Math.min(states.length-1,n));render()}
+function load(){
+ stop();const raw=$("input").value.trim();
+ const parsed=raw.split(/[,\s]+/).filter(Boolean).map(Number);
+ if(!parsed.length||parsed.some(n=>!Number.isSafeInteger(n))){alert("กรุณาใส่ตัวเลขจำนวนเต็ม คั่นด้วย comma หรือเว้นวรรค");return}
+ if(parsed.length>14){alert("ใส่ได้ไม่เกิน 14 ตัว เพื่อให้แสดงผลได้ชัดเจน");return}
+ nums=parsed;states=build();pos=0;render();
+}
+$("load").onclick=load;$("reset").onclick=()=>go(0);$("prev").onclick=()=>go(pos-1);$("next").onclick=()=>go(pos+1);
+$("play").onclick=()=>{if(timer){stop();return}if(pos===states.length-1)pos=0;$("play").textContent="Ⅱ หยุด";render();timer=setInterval(()=>{if(pos<states.length-1){pos++;render()}else stop()},Number($("speed").value))};
+$("speed").onchange=()=>{if(timer){stop();$("play").click()}};
+states=build();render();
+</script>
+</body>
+</html>
